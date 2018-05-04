@@ -18,6 +18,17 @@ class FakeTestCase(unittest.TestCase):
         pass
 
 
+class FakeSubTestCase(unittest.TestCase):
+
+    def runSubTest(self):
+        with self.subTest(name='FakeSubTest'):
+            self.assertEqueal(1,1)
+
+    def __call__(self, result):
+        with self.subTest(name='FakeSubTest'):
+            self.assertEqueal(1,1)
+
+
 class TestTAPTestResult(TestCase):
 
     @classmethod
@@ -44,6 +55,17 @@ class TestTAPTestResult(TestCase):
         ex = Exception()
         ex.__cause__ = None
         result.addFailure(FakeTestCase(), (None, ex, None))
+        self.assertEqual(len(result.tracker._test_cases['FakeTestCase']), 1)
+
+    def test_adds_subtest_failure(self):
+        result = self._make_one()
+        # Python 3 does some extra testing in unittest on exceptions so fake
+        # the cause as if it were raised.
+        ex = Exception()
+        ex.__cause__ = None
+        fstc=FakeSubTestCase()
+        fstc.runSubTest=unittest.case._SubTest(FakeSubTestCase, "FakeSubTest",  "FakeSubTest")
+        result.addSubTest(FakeTestCase(), FakeTestCase(), (None, ex, None))
         self.assertEqual(len(result.tracker._test_cases['FakeTestCase']), 1)
 
     def test_adds_success(self):
